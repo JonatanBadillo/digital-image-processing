@@ -24,3 +24,15 @@ def match_histogram(image, ref_cdf):
     
     return corrected_image.astype(np.uint8)
 
+
+"""Genera y muestra el histograma acumulativo normalizado de una imagen."""
+def plot_histogram(image, title):
+    hist, _ = np.histogram(image.flatten(), 256, [0,256])
+    cdf = compute_cdf(hist)
+    plt.plot(cdf, color='blue')
+    plt.title(title)
+    plt.xlabel("Intensidad")
+    plt.ylabel("Frecuencia Acumulada")
+    plt.grid()
+
+
