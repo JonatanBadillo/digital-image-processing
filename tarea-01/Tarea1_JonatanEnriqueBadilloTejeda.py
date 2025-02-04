@@ -56,17 +56,17 @@ def main():
 
     # si hay dos columnas, extraer valores (a_k) y CDF (q_k)
     if ref_points.ndim == 2 and ref_points.shape[1] == 2:
-        x_ref = ref_points[:, 0]  # Valores de intensidad (0-255)
+        x_ref = ref_points[:, 0]  # valores de intensidad (0-255)
         y_ref = ref_points[:, 1]  # CDF de referencia (0-1)
         
         # interpolación lineal para obtener 256 valores de la CDF
-        ref_cdf = np.interp(np.arange(256), x_ref, y_ref)
+        ref_cdf = np.interp(np.arange(256), x_ref, y_ref) 
     else:
-        ref_cdf = ref_points  # Si ya tiene 256 valores, usarlo directamente
+        ref_cdf = ref_points  # si ya tiene 256 valores, usarlo directamente
 
     
-    # aplicar la especificación del histograma
-    corrected_image = match_histogram(image, ref_cdf)
+    # aplicar la especificación del histograma a la imagen
+    corrected_image = match_histogram(image, ref_cdf) # imagen corregida
     
     # mostrar resultados
     plt.figure(figsize=(12, 6))
