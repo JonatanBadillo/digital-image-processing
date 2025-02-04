@@ -6,34 +6,34 @@ import argparse
 
 """calcula la función de distribución acumulativa (CDF) normalizada."""
 def compute_cdf(hist):
-    cdf = hist.cumsum()
+    cdf = hist.cumsum() # suma acumulativa
     cdf_normalized = cdf / float(cdf[-1]) # normalización dividiendo entre el máximo
     return cdf_normalized
 
 """aplica la especificación del histograma a una imagen utilizando la CDF de referencia."""
 def match_histogram(image, ref_cdf):
     # calcular el histograma y la CDF de la imagen original
-    hist, bins = np.histogram(image.flatten(), 256, [0,256])
-    cdf_image = compute_cdf(hist)
+    hist, bins = np.histogram(image.flatten(), 256, [0,256]) # histograma de la imagen original
+    cdf_image = compute_cdf(hist) # CDF de la imagen original
     
-    # crear la función de mapeo
-    mapping = np.interp(cdf_image, ref_cdf, np.arange(256))
+    # crear la función de mapeo de intensidades 
+    mapping = np.interp(cdf_image, ref_cdf, np.arange(256)) # mapeo de intensidades (0-255)
     
-    # aplicar la transformación
-    corrected_image = np.interp(image.flatten(), np.arange(256), mapping).reshape(image.shape)
+    # aplicar la transformación de intensidades a la imagen
+    corrected_image = np.interp(image.flatten(), np.arange(256), mapping).reshape(image.shape) # imagen corregida con mapeo
     
-    return corrected_image.astype(np.uint8)
+    return corrected_image.astype(np.uint8) # convertir a uint8 para mostrar la imagen
 
 
-"""genera y muestra el histograma acumulativo normalizado de una imagen."""
+"""generar y mostrar el histograma acumulativo normalizado de una imagen."""
 def plot_histogram(image, title):
-    hist, _ = np.histogram(image.flatten(), 256, [0,256])
-    cdf = compute_cdf(hist)
-    plt.plot(cdf, color='blue')
-    plt.title(title)
-    plt.xlabel("Intensidad")
-    plt.ylabel("Frecuencia Acumulada")
-    plt.grid()
+    hist, _ = np.histogram(image.flatten(), 256, [0,256]) # histograma de la imagen 
+    cdf = compute_cdf(hist) # CDF de la imagen original
+    plt.plot(cdf, color='blue') # graficar la CDF
+    plt.title(title) # título del gráfico
+    plt.xlabel("Intensidad") # etiqueta eje x
+    plt.ylabel("Frecuencia Acumulada")  # etiqueta eje y
+    plt.grid() # mostrar cuadrícula
 
 
 def main():
