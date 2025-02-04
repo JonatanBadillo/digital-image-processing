@@ -37,13 +37,16 @@ def plot_histogram(image, title):
 
 
 def main():
+    # argumentos de línea de comandos
     parser = argparse.ArgumentParser(description='Especificación del Histograma en Imágenes en Escala de Grises')
+    # argumentos obligatorios para la imagen de entrada y el archivo de referencia
     parser.add_argument('-i', '--input', required=True, help='Ruta de la imagen de entrada en escala de grises')
     parser.add_argument('-o', '--output', required=True, help='Archivo de referencia con la CDF objetivo')
+    # analizar los argumentos
     args = parser.parse_args()
     
     # cargar la imagen en escala de grises
-    image = cv2.imread(args.input, cv2.IMREAD_GRAYSCALE)
+    image = cv2.imread(args.input, cv2.IMREAD_GRAYSCALE) 
     if image is None:
         print("Error al cargar la imagen.")
         return
