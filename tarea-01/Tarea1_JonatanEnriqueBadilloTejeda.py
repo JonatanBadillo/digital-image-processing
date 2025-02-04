@@ -7,7 +7,7 @@ import argparse
 """calcula la función de distribución acumulativa (CDF) normalizada."""
 def compute_cdf(hist):
     cdf = hist.cumsum() # suma acumulativa
-    cdf_normalized = cdf / float(cdf[-1]) # normalización dividiendo entre el máximo
+    cdf_normalized = cdf / float(cdf[-1]) # normalización dividiendo entre el total de píxeles
     return cdf_normalized
 
 """aplica la especificación del histograma a una imagen utilizando la CDF de referencia."""
