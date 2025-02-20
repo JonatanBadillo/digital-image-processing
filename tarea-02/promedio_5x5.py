@@ -1,4 +1,4 @@
-# filtro Promedio 3x3 - promedio_3x3.py
+# Filtro Promedio 5x5 - promedio_5x5.py
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,11 +15,11 @@ if image is None:
 # convertir a RGB para visualización
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-# definir kernel de promedio 3x3
-kernel_average_3x3 = np.ones((3,3), np.float32) / 9.0
+# definir kernel de promedio 5x5
+kernel_average_5x5 = np.ones((5,5), np.float32) / 25.0
 
-# aplicar filtro promedio 3x3
-filtered_image = cv2.filter2D(image, -1, kernel_average_3x3)
+# aplicar filtro promedio 5x5
+filtered_image = cv2.filter2D(image, -1, kernel_average_5x5)
 
 # visualizar comparativa
 plt.figure(figsize=(12, 6))
@@ -30,7 +30,7 @@ plt.axis("off")
 
 plt.subplot(1, 2, 2)
 plt.imshow(filtered_image)
-plt.title("Promedio 3x3")
+plt.title("Promedio 5x5")
 plt.axis("off")
 
 plt.tight_layout()
