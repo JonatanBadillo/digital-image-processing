@@ -44,7 +44,7 @@ filtered_images = {
 for name, img in filtered_images.items():
     save_path = os.path.join(output_dir, f"{name}.png")
     cv2.imwrite(save_path, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))  # convertir de RGB a BGR para OpenCV
-    print(f"✅ Imagen guardada: {save_path}")
+    print(f"Imagen guardada: {save_path}")
 
 # visualizar resultados
 plt.figure(figsize=(12, 8))
