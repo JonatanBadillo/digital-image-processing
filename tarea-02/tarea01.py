@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # 📌 Ruta de la imagen (ajusta según la ubicación correcta)
-ruta = "/Users/jbadillo01/Desktop/Proc-Imagenes/tarea-02/carretera1.png"
+ruta = "carretera1.png"
 
 # 📌 Cargar imagen con validación
 image = cv2.imread(ruta)
