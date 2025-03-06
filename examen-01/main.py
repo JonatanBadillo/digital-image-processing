@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # función para recortar la región de interés
 def recorte(frame):
     x1, y1 = 280, 400  # coordenadas de la esquina superior izquierda
-    x2, y2 = 1280, 700  # coordenadas de la esquina inferior derecha
+    x2, y2 = 1280, 720  # coordenadas de la esquina inferior derecha
     return frame[y1:y2, x1:x2]
 
 # función para aplicar filtro gamma
