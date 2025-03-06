@@ -43,7 +43,7 @@ def cargar_video(ruta_video):
         frame_filtrado = filtro_gamma(frame_recortado)
         
         # mostrar resultados parciales
-        cv2.imshow('Frame Original', frame)
+        # cv2.imshow('Frame Original', frame)
         cv2.imshow('Frame Recortado', frame_recortado)
         cv2.imshow('Frame con Filtro Gamma', frame_filtrado)
         
