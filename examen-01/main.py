@@ -10,14 +10,10 @@ def recorte(frame):
 
 # función para aplicar filtro gamma
 # mejorar constraste de la imagen
-# resaltar detalles en zonas oscuras
-# gamma < 1: oscurece la imagen
-# gamma > 1: aclara la imagen
-# gamma = 1: no hay cambios
 # gamma = 2: aumenta el contraste
 def filtro_gamma(frame, gamma=2.0):
     # oscurece las luces y resalta los detalles en las sombras.
-    gamma_corrected = np.array(255 * (frame / 255) ** gamma, dtype="uint8")
+    gamma_corrected = np.array(255 * (frame / 255) ** gamma, dtype="uint8") # corrección gamma, 255 es el valor máximo de intensidad
     return gamma_corrected
 
 # función para cargar el video y procesar los frames
@@ -30,6 +26,8 @@ def cargar_video(ruta_video):
         return
     
     # leer los frames del video
+    # procesar cada frame, cada ciclo lee un frame
+    # aplicar recorte y filtro gamma
     while cap.isOpened():
         ret, frame = cap.read()
         # verificar si se llegó al final del video
