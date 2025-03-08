@@ -1,40 +1,42 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
 # función para recortar la región de interés
 def recorte(frame):
     x1, y1 = 280, 400  # Coordenadas de la esquina superior izquierda
     x2, y2 = 1280, 720  # Coordenadas de la esquina inferior derecha
+
+    # Verifica que las dimensiones sean válidas antes de recortar
+    if frame.shape[0] < y2 or frame.shape[1] < x2:
+        return frame  # Devuelve el frame original si las coordenadas no son válidas
     return frame[y1:y2, x1:x2]
 
 # función para aplicar filtro gamma
 def filtro_gamma(frame, gamma=2.0):
-    gamma_corrected = np.array(255 * (frame / 255) ** gamma, dtype="uint8")
-    return gamma_corrected
+    lookup_table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+    return cv2.LUT(frame, lookup_table)
 
 # función para detectar líneas amarillas y blancas en el camino
 def detectar_lineas(frame):
-    # convertir a espacio de color HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    # definir rango de colores amarillo y blanco
-    lower_yellow = np.array([15, 150, 150]) # rango bajo de color amarillo
-    upper_yellow = np.array([30, 255, 255]) # rango alto de color amarillo
-    lower_white = np.array([0, 0, 200]) # rango bajo de color blanco
-    upper_white = np.array([180, 50, 255]) # rango alto de color blanco
 
-    # aplicar máscaras para detectar colores amarillos y blancos
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow) # máscara para color amarillo
-    mask_white = cv2.inRange(hsv, lower_white, upper_white) # máscara para color blanco
-    combined_mask = cv2.bitwise_or(mask_yellow, mask_white) # combinar máscaras
+    # Definir rango de colores amarillo y blanco
+    lower_yellow = np.array([15, 150, 150])
+    upper_yellow = np.array([30, 255, 255])
+    lower_white = np.array([0, 0, 200])
+    upper_white = np.array([180, 50, 255])
+
+    # Aplicar máscaras
+    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    mask_white = cv2.inRange(hsv, lower_white, upper_white)
+    combined_mask = cv2.bitwise_or(mask_yellow, mask_white)
+
     return combined_mask
 
-# Función para enmascarar el resto del video en negro
+# Función para aplicar fondo negro y mantener solo líneas detectadas
 def aplicar_fondo_negro(frame, mask_lineas):
     resultado = cv2.bitwise_and(frame, frame, mask=mask_lineas)
-    fondo_negro = np.zeros_like(frame)
-    frame_con_lineas = cv2.add(fondo_negro, resultado)
-    return frame_con_lineas
+    return resultado
 
 # Función para procesar el frame completo
 def procesar_frame(frame):
@@ -46,37 +48,64 @@ def procesar_frame(frame):
 # Función para cargar el video y procesar los frames
 def cargar_video(ruta_video, ruta_salida):
     cap = cv2.VideoCapture(ruta_video)
-    if not cap.isOpened():
-            print("Error: No se pudo abrir el video.")
-            return
-    else:
-            print("Video cargado correctamente.")
 
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    if not cap.isOpened():
+        print("Error: No se pudo abrir el video.")
+        return
+    print("Video cargado correctamente.")
+
+    # Obtener información del video
     fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print(f"FPS del video: {fps}")
+    print(f"Total de frames detectados: {total_frames}")
+
+    ret, frame = cap.read()
+    if not ret:
+        print("Error: No se pudo leer el primer frame.")
+        cap.release()
+        return
+
+    # Verificar dimensiones después del recorte
+    frame_recortado = recorte(frame)
+    height, width = frame_recortado.shape[:2]
+    print(f"Tamaño del frame después del recorte: {width}x{height}")
+
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(ruta_salida, fourcc, fps, (width, height))
 
+    frame_count = 0  # Contador de frames procesados
 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            print("Fin del video o error al leer el frame.")
-            break
-    
+    try:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("Fin del video o error al leer el frame.")
+                break
 
-        frame_recortado = recorte(frame)
-        frame_procesado = procesar_frame(frame_recortado)
-        out.write(frame_procesado)
-        cv2.imshow('Frame Procesado', frame_procesado)
+            frame_count += 1
+            print(f"Procesando frame {frame_count}/{total_frames}")
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            frame_recortado = recorte(frame)
+            frame_procesado = procesar_frame(frame_recortado)
 
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
+            # Verificar que el frame procesado tenga el mismo tamaño que el VideoWriter
+            if frame_procesado.shape[:2] != (height, width):
+                print(f"Error: Tamaño incorrecto en el frame procesado ({frame_procesado.shape[:2]})")
+                break
+
+            out.write(frame_procesado)
+
+            cv2.imshow('Frame Procesado', frame_procesado)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                print("Procesamiento detenido por el usuario.")
+                break
+    finally:
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+        print("Recursos liberados correctamente.")
 
 # Función principal
 if __name__ == "__main__":
