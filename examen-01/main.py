@@ -15,14 +15,18 @@ def filtro_gamma(frame, gamma=2.0):
 
 # función para detectar líneas amarillas y blancas en el camino
 def detectar_lineas(frame):
+    # convertir a espacio de color HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    lower_yellow = np.array([15, 150, 150])
-    upper_yellow = np.array([30, 255, 255])
-    lower_white = np.array([0, 0, 200])
-    upper_white = np.array([180, 50, 255])
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
-    mask_white = cv2.inRange(hsv, lower_white, upper_white)
-    combined_mask = cv2.bitwise_or(mask_yellow, mask_white)
+    # definir rango de colores amarillo y blanco
+    lower_yellow = np.array([15, 150, 150]) # rango bajo de color amarillo
+    upper_yellow = np.array([30, 255, 255]) # rango alto de color amarillo
+    lower_white = np.array([0, 0, 200]) # rango bajo de color blanco
+    upper_white = np.array([180, 50, 255]) # rango alto de color blanco
+
+    # aplicar máscaras para detectar colores amarillos y blancos
+    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow) # máscara para color amarillo
+    mask_white = cv2.inRange(hsv, lower_white, upper_white) # máscara para color blanco
+    combined_mask = cv2.bitwise_or(mask_yellow, mask_white) # combinar máscaras
     return combined_mask
 
 # Función para enmascarar el resto del video en negro
