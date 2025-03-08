@@ -47,8 +47,10 @@ def procesar_frame(frame):
 def cargar_video(ruta_video, ruta_salida):
     cap = cv2.VideoCapture(ruta_video)
     if not cap.isOpened():
-        print("Error al abrir el video.")
-        return
+            print("Error: No se pudo abrir el video.")
+            return
+    else:
+            print("Video cargado correctamente.")
 
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -56,10 +58,13 @@ def cargar_video(ruta_video, ruta_salida):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(ruta_salida, fourcc, fps, (width, height))
 
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
+            print("Fin del video o error al leer el frame.")
             break
+    
 
         frame_recortado = recorte(frame)
         frame_procesado = procesar_frame(frame_recortado)
