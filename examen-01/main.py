@@ -2,18 +2,18 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-# Función para recortar la región de interés
+# función para recortar la región de interés
 def recorte(frame):
     x1, y1 = 280, 400  # Coordenadas de la esquina superior izquierda
     x2, y2 = 1280, 720  # Coordenadas de la esquina inferior derecha
     return frame[y1:y2, x1:x2]
 
-# Función para aplicar filtro gamma
+# función para aplicar filtro gamma
 def filtro_gamma(frame, gamma=2.0):
     gamma_corrected = np.array(255 * (frame / 255) ** gamma, dtype="uint8")
     return gamma_corrected
 
-# Función para detectar líneas amarillas y blancas en el camino
+# función para detectar líneas amarillas y blancas en el camino
 def detectar_lineas(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     lower_yellow = np.array([15, 150, 150])
