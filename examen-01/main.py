@@ -22,9 +22,17 @@ def filtro_gamma(frame, gamma=2.0):
     lookup_table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(frame, lookup_table)
 
-# Función para aplicar suavizado Gaussiano
+# Función para aplicar suavizado Gaussiano 5x5
 def suavizar(frame):
-    return cv2.GaussianBlur(frame, (5, 5), 0)  # Tamaño del kernel: 5x5, desviación estándar: 0
+    # Definir kernel Gaussiano 5x5
+    kernel_gaussian_5x5 = np.array([[1, 4, 7, 4, 1],
+                                    [4, 16, 26, 16, 4],
+                                    [7, 26, 41, 26, 7],
+                                    [4, 16, 26, 16, 4],
+                                    [1, 4, 7, 4, 1]]) * (1/273)
+    
+    # Aplicar filtro Gaussiano 5x5
+    return cv2.filter2D(frame, -1, kernel_gaussian_5x5)
 
 # Función para detectar líneas amarillas y blancas
 def detectar_lineas(frame):
@@ -47,7 +55,7 @@ def aplicar_fondo_negro(frame, mask_lineas):
 
 # Función para procesar el frame completo
 def procesar_frame(frame):
-    # Aplicar suavizado Gaussiano
+    # Aplicar suavizado Gaussiano 5x5
     frame_suavizado = suavizar(frame)
     
     # Aplicar filtro gamma
