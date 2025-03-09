@@ -24,9 +24,13 @@ def union(frame, frame_recortado):
 # funcion para aplicar filtro gamma
 # sirve para ajustar el brillo de la imagen
 
-def filtro_gamma(frame, gamma=2.0):
-    lookup_table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
-    return cv2.LUT(frame, lookup_table)  # aplicamos la transformacion gamma
+def filtro_gamma(frame):
+     # Filtro Gamma
+    gamma = 2
+    image_RGB_gamma = np.array(255*(frame / 255)**gamma, dtype="uint8")
+    return image_RGB_gamma
+
+
 
 # funcion para aplicar suavizado gaussiano 5x5
 # ayuda a reducir el ruido en la imagen
