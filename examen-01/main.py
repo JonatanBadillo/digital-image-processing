@@ -19,14 +19,18 @@ def filtro_gamma(frame, gamma=2.0):
 
 # función para detectar líneas amarillas y blancas en el camino
 def detectar_lineas(frame):
+    # convierte el frame de BGR a HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    lower_yellow = np.array([15, 150, 150])
-    upper_yellow = np.array([30, 255, 255])
-    lower_white = np.array([0, 0, 200])
-    upper_white = np.array([180, 50, 255])
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
-    mask_white = cv2.inRange(hsv, lower_white, upper_white)
-    combined_mask = cv2.bitwise_or(mask_yellow, mask_white)
+    # define los rangos de colores amarillo y blanco en HSV
+    lower_yellow = np.array([15, 150, 150]) # define el rango inferior del color amarillo
+    upper_yellow = np.array([30, 255, 255])# define el rango superior del color amarillo
+    lower_white = np.array([0, 0, 200]) # define el rango inferior del color blanco
+    upper_white = np.array([180, 50, 255]) # define el rango superior del color blanco
+    # crea máscaras para los colores amarillo y blanco
+    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow) # crea una máscara para el color amarillo
+    mask_white = cv2.inRange(hsv, lower_white, upper_white) # crea una máscara para el color blanco
+    # combina las máscaras de color amarillo y blanco   
+    combined_mask = cv2.bitwise_or(mask_yellow, mask_white) 
     return combined_mask
 
 # función para aplicar fondo negro
