@@ -1,0 +1,7 @@
+Instrucciones:
+1. Coloca el video "lineas.mp4" en la misma carpeta que el script.
+3. Ejecuta el script con el siguiente comando:
+   python main.py
+   o el siguiente comando, en mi caso es asi:
+   python3 main.py
+4. El video procesado se guardará como "lineas_procesado.mp4".
