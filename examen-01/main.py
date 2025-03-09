@@ -1,48 +1,60 @@
 import numpy as np
 import cv2
-import time
+import matplotlib.pyplot as plt
+
+# Función para calcular y acumular el histograma de un frame
+def calcular_histograma(frame, histograma_total):
+    frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    histograma_frame = cv2.calcHist([frame_gris], [0], None, [256], [0, 256])
+    histograma_total += histograma_frame
+    return histograma_total
 
 # Función para recortar la región de interés
 def recorte(frame):
-    x1, y1 = 280, 400  # coordenadas de la esquina superior izquierda
-    x2, y2 = 1280, 720  # coordenadas de la esquina inferior derecha
-
+    x1, y1 = 280, 400  # Coordenadas de la esquina superior izquierda
+    x2, y2 = 1280, 720  # Coordenadas de la esquina inferior derecha
     if frame.shape[0] < y2 or frame.shape[1] < x2:
-        return frame  # devuelve el frame original si las coordenadas no son válidas
+        return frame  # Devuelve el frame original si las coordenadas no son válidas
     return frame[y1:y2, x1:x2]
+
+# Función para unir el frame procesado con el fondo negro
+def union(frame, frame_recortado):
+    x1, y1 = 280, 400  # Coordenadas de la esquina superior izquierda
+    x2, y2 = 1280, 720  # Coordenadas de la esquina inferior derecha
+    frame_negro = np.zeros_like(frame)
+    frame_negro[y1:y2, x1:x2] = frame_recortado
+    return frame_negro
 
 # Función para aplicar filtro gamma
 def filtro_gamma(frame, gamma=2.0):
-    # crea una tabla de búsqueda para mapear los valores de píxeles de entrada a los valores de píxeles de salida
-    # utilizando la fórmula de corrección gamma
     lookup_table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(frame, lookup_table)
 
-# Función para detectar líneas amarillas y blancas en el camino
+# Función para detectar líneas amarillas y blancas
 def detectar_lineas(frame):
-    # convierte el frame de BGR a HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    # define los rangos de colores amarillo y blanco en HSV
-    lower_yellow = np.array([15, 150, 150])  # define el rango inferior del color amarillo
-    upper_yellow = np.array([30, 255, 255])  # define el rango superior del color amarillo
-    lower_white = np.array([0, 0, 200])  # define el rango inferior del color blanco
-    upper_white = np.array([180, 50, 255])  # define el rango superior del color blanco
-    # crea máscaras para los colores amarillo y blanco
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)  # crea una máscara para el color amarillo
-    mask_white = cv2.inRange(hsv, lower_white, upper_white)  # crea una máscara para el color blanco
-    # combina las máscaras de color amarillo y blanco
+    lower_yellow = np.array([15, 150, 150])
+    upper_yellow = np.array([30, 255, 255])
+    lower_white = np.array([0, 0, 200])
+    upper_white = np.array([180, 50, 255])
+    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
+    mask_white = cv2.inRange(hsv, lower_white, upper_white)
     combined_mask = cv2.bitwise_or(mask_yellow, mask_white)
     return combined_mask
 
 # Función para aplicar fondo negro
 def aplicar_fondo_negro(frame, mask_lineas):
-    return cv2.bitwise_and(frame, frame, mask=mask_lineas)
+    resultado = cv2.bitwise_and(frame, frame, mask=mask_lineas)
+    fondo_negro = np.zeros_like(frame)
+    frame_con_lineas = cv2.add(fondo_negro, resultado)
+    return frame_con_lineas
 
 # Función para procesar el frame completo
 def procesar_frame(frame):
     frame_procesado = filtro_gamma(frame)
     mask_lineas = detectar_lineas(frame_procesado)
-    return aplicar_fondo_negro(frame_procesado, mask_lineas)
+    frame_con_lineas = aplicar_fondo_negro(frame_procesado, mask_lineas)
+    return frame_con_lineas
 
 # Función para cargar el video y procesar los frames
 def cargar_video(ruta_video, ruta_salida):
@@ -50,7 +62,6 @@ def cargar_video(ruta_video, ruta_salida):
     if not cap.isOpened():
         print("Error: No se pudo abrir el video.")
         return
-    print("Video cargado correctamente.")
 
     # Obtener propiedades del video
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -61,8 +72,8 @@ def cargar_video(ruta_video, ruta_salida):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(ruta_salida, fourcc, fps, (width, height))
 
-    # Calcular el retardo entre frames (en milisegundos)
-    delay = int(1000 / fps)  # 1000 ms / fps
+    # Inicializar histograma total
+    histograma_total = np.zeros((256, 1))
 
     try:
         while True:
@@ -70,13 +81,22 @@ def cargar_video(ruta_video, ruta_salida):
             if not ret:
                 break
 
+            # Procesar el frame
             frame_recortado = recorte(frame)
             frame_procesado = procesar_frame(frame_recortado)
-            out.write(frame_procesado)
-            cv2.imshow('Frame Procesado', frame_procesado)
+            frame_unido = union(frame, frame_procesado)
 
-            # Introducir un retardo para sincronizar con el tiempo real del video
-            if cv2.waitKey(delay) & 0xFF == ord('q'):
+            # Guardar el frame procesado
+            out.write(frame_unido)
+
+            # Mostrar el frame procesado
+            cv2.imshow('Frame Procesado', frame_unido)
+
+            # Acumular histograma
+            histograma_total = calcular_histograma(frame, histograma_total)
+
+            # Salir con tecla 'q'
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
         cap.release()
@@ -84,8 +104,10 @@ def cargar_video(ruta_video, ruta_salida):
         cv2.destroyAllWindows()
         print("Procesamiento finalizado.")
 
+    return histograma_total
+
+
 # Función principal
 if __name__ == "__main__":
-    ruta_video = 'lineas.mp4'
-    ruta_salida = 'lineas_procesado.mp4'
-    cargar_video(ruta_video, ruta_salida)
+    ruta_video = 'lineas.mp4'  # Ruta del video
+    ruta_salida = 'lineas_procesado.mp4'  # Ruta para exportar video
