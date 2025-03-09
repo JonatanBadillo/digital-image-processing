@@ -1,13 +1,5 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
-
-# Función para calcular y acumular el histograma de un frame
-def calcular_histograma(frame, histograma_total):
-    frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    histograma_frame = cv2.calcHist([frame_gris], [0], None, [256], [0, 256])
-    histograma_total += histograma_frame
-    return histograma_total
 
 # Función para recortar la región de interés
 def recorte(frame):
@@ -72,9 +64,6 @@ def cargar_video(ruta_video, ruta_salida):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(ruta_salida, fourcc, fps, (width, height))
 
-    # Inicializar histograma total
-    histograma_total = np.zeros((256, 1))
-
     try:
         while True:
             ret, frame = cap.read()
@@ -92,9 +81,6 @@ def cargar_video(ruta_video, ruta_salida):
             # Mostrar el frame procesado
             cv2.imshow('Frame Procesado', frame_unido)
 
-            # Acumular histograma
-            histograma_total = calcular_histograma(frame, histograma_total)
-
             # Salir con tecla 'q'
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -104,10 +90,10 @@ def cargar_video(ruta_video, ruta_salida):
         cv2.destroyAllWindows()
         print("Procesamiento finalizado.")
 
-    return histograma_total
-
-
 # Función principal
 if __name__ == "__main__":
     ruta_video = 'lineas.mp4'  # Ruta del video
     ruta_salida = 'lineas_procesado.mp4'  # Ruta para exportar video
+
+    # Cargar y procesar el video
+    cargar_video(ruta_video, ruta_salida)
