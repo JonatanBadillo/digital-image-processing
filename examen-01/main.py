@@ -49,14 +49,14 @@ def detectar_lineas(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  # convertimos la imagen a espacio de color hsv
     
     # definir rangos de color para amarillo y blanco
-    lower_yellow = np.array([15, 150, 150])
-    upper_yellow = np.array([30, 255, 255])
-    lower_white = np.array([0, 0, 200])
-    upper_white = np.array([180, 50, 255])
+    lower_yellow = np.array([15, 150, 150]) # definimos el rango de color amarillo bajo en hsv
+    upper_yellow = np.array([30, 255, 255]) # definimos el rango de color amarillo alto en hsv
+    lower_white = np.array([0, 0, 200]) # definimos el rango de color blanco bajo en hsv
+    upper_white = np.array([180, 50, 255]) # definimos el rango de color blanco alto en hsv
     
     # crear mascaras para detectar los colores
-    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
-    mask_white = cv2.inRange(hsv, lower_white, upper_white)
+    mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow) # crear mascara para el color amarillo
+    mask_white = cv2.inRange(hsv, lower_white, upper_white) # crear mascara para el color blanco
     
     combined_mask = cv2.bitwise_or(mask_yellow, mask_white)  # combinar ambas mascaras
     return combined_mask
