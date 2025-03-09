@@ -89,7 +89,10 @@ def cargar_video(ruta_video, ruta_salida):
         return
     
     # obtener propiedades del video
+
+    # obtener fps del video original
     fps = cap.get(cv2.CAP_PROP_FPS)
+    # obtener ancho y alto del video
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
@@ -104,8 +107,12 @@ def cargar_video(ruta_video, ruta_salida):
                 break  # salir si no hay mas frames
             
             # procesar el frame
+            
+            # recortar la region de interes
             frame_recortado = recorte(frame)
+            # procesar el frame rec
             frame_procesado = procesar_frame(frame_recortado)
+            # unir el frame procesado
             frame_unido = union(frame, frame_procesado)
             
             # guardar el frame procesado en el video de salida
