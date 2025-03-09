@@ -22,6 +22,10 @@ def filtro_gamma(frame, gamma=2.0):
     lookup_table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(frame, lookup_table)
 
+# Función para aplicar suavizado Gaussiano
+def suavizar(frame):
+    return cv2.GaussianBlur(frame, (5, 5), 0)  # Tamaño del kernel: 5x5, desviación estándar: 0
+
 # Función para detectar líneas amarillas y blancas
 def detectar_lineas(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -43,9 +47,18 @@ def aplicar_fondo_negro(frame, mask_lineas):
 
 # Función para procesar el frame completo
 def procesar_frame(frame):
-    frame_procesado = filtro_gamma(frame)
+    # Aplicar suavizado Gaussiano
+    frame_suavizado = suavizar(frame)
+    
+    # Aplicar filtro gamma
+    frame_procesado = filtro_gamma(frame_suavizado)
+    
+    # Detectar líneas amarillas y blancas
     mask_lineas = detectar_lineas(frame_procesado)
+    
+    # Aplicar fondo negro para todo excepto las líneas
     frame_con_lineas = aplicar_fondo_negro(frame_procesado, mask_lineas)
+    
     return frame_con_lineas
 
 # Función para cargar el video y procesar los frames
