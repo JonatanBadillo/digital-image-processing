@@ -3,15 +3,17 @@ import cv2
 
 # función para recortar la región de interés
 def recorte(frame):
-    x1, y1 = 280, 400  # Coordenadas de la esquina superior izquierda
-    x2, y2 = 1280, 720  # Coordenadas de la esquina inferior derecha
+    x1, y1 = 280, 400  # coordenadas de la esquina superior izquierda
+    x2, y2 = 1280, 720  # coordenadas de la esquina inferior derecha
 
     if frame.shape[0] < y2 or frame.shape[1] < x2:
-        return frame  # Devuelve el frame original si las coordenadas no son válidas
+        return frame  # devuelve el frame original si las coordenadas no son válidas
     return frame[y1:y2, x1:x2]
 
 # función para aplicar filtro gamma
 def filtro_gamma(frame, gamma=2.0):
+    # crea una tabla de búsqueda para mapear los valores de píxeles de entrada a los valores de píxeles de salida
+    # utilizando la fórmula de corrección gamma
     lookup_table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(frame, lookup_table)
 
@@ -27,17 +29,17 @@ def detectar_lineas(frame):
     combined_mask = cv2.bitwise_or(mask_yellow, mask_white)
     return combined_mask
 
-# Función para aplicar fondo negro
+# función para aplicar fondo negro
 def aplicar_fondo_negro(frame, mask_lineas):
     return cv2.bitwise_and(frame, frame, mask=mask_lineas)
 
-# Función para procesar el frame completo
+# función para procesar el frame completo
 def procesar_frame(frame):
     frame_procesado = filtro_gamma(frame)
     mask_lineas = detectar_lineas(frame_procesado)
     return aplicar_fondo_negro(frame_procesado, mask_lineas)
 
-# Función para cargar el video y procesar los frames
+# función para cargar el video y procesar los frames
 def cargar_video(ruta_video, ruta_salida):
     cap = cv2.VideoCapture(ruta_video)
     if not cap.isOpened():
