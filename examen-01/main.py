@@ -1,120 +1,132 @@
 import numpy as np
 import cv2
 
-# Función para recortar la región de interés
-def recorte(frame):
-    x1, y1 = 280, 400  # Coordenadas de la esquina superior izquierda
-    x2, y2 = 1280, 720  # Coordenadas de la esquina inferior derecha
-    if frame.shape[0] < y2 or frame.shape[1] < x2:
-        return frame  # Devuelve el frame original si las coordenadas no son válidas
-    return frame[y1:y2, x1:x2]
+# funcion para recortar la region de interes
+# esto sirve para enfocarnos solo en una parte del frame
 
-# Función para unir el frame procesado con el fondo negro
+def recorte(frame):
+    x1, y1 = 280, 400  # coordenadas de la esquina superior izquierda
+    x2, y2 = 1280, 720  # coordenadas de la esquina inferior derecha
+    if frame.shape[0] < y2 or frame.shape[1] < x2:
+        return frame  # devuelve el frame original si las coordenadas no son validas
+    return frame[y1:y2, x1:x2]  # devuelve solo la region de interes
+
+# funcion para unir el frame procesado con el fondo negro
+# se usa para conservar solo la parte procesada del frame
+
 def union(frame, frame_recortado):
-    x1, y1 = 280, 400  # Coordenadas de la esquina superior izquierda
-    x2, y2 = 1280, 720  # Coordenadas de la esquina inferior derecha
-    frame_negro = np.zeros_like(frame)
-    frame_negro[y1:y2, x1:x2] = frame_recortado
+    x1, y1 = 280, 400  # coordenadas de la esquina superior izquierda
+    x2, y2 = 1280, 720  # coordenadas de la esquina inferior derecha
+    frame_negro = np.zeros_like(frame)  # creamos un frame negro del mismo tamaño
+    frame_negro[y1:y2, x1:x2] = frame_recortado  # colocamos el frame procesado en la region correspondiente
     return frame_negro
 
-# Función para aplicar filtro gamma
+# funcion para aplicar filtro gamma
+# sirve para ajustar el brillo de la imagen
+
 def filtro_gamma(frame, gamma=2.0):
     lookup_table = np.array([((i / 255.0) ** gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
-    return cv2.LUT(frame, lookup_table)
+    return cv2.LUT(frame, lookup_table)  # aplicamos la transformacion gamma
 
-# Función para aplicar suavizado Gaussiano 5x5
+# funcion para aplicar suavizado gaussiano 5x5
+# ayuda a reducir el ruido en la imagen
+
 def suavizar(frame):
-    # Definir kernel Gaussiano 5x5
+    # definir kernel gaussiano 5x5 para el filtro
     kernel_gaussian_5x5 = np.array([[1, 4, 7, 4, 1],
                                     [4, 16, 26, 16, 4],
                                     [7, 26, 41, 26, 7],
                                     [4, 16, 26, 16, 4],
                                     [1, 4, 7, 4, 1]]) * (1/273)
     
-    # Aplicar filtro Gaussiano 5x5
+    # aplicar filtro gaussiano 5x5 para suavizar la imagen
     return cv2.filter2D(frame, -1, kernel_gaussian_5x5)
 
-# Función para detectar líneas amarillas y blancas
+# funcion para detectar lineas amarillas y blancas en la imagen
+# se usa para identificar carriles en la carretera
+
 def detectar_lineas(frame):
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)  # convertimos la imagen a espacio de color hsv
+    
+    # definir rangos de color para amarillo y blanco
     lower_yellow = np.array([15, 150, 150])
     upper_yellow = np.array([30, 255, 255])
     lower_white = np.array([0, 0, 200])
     upper_white = np.array([180, 50, 255])
+    
+    # crear mascaras para detectar los colores
     mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
     mask_white = cv2.inRange(hsv, lower_white, upper_white)
-    combined_mask = cv2.bitwise_or(mask_yellow, mask_white)
+    
+    combined_mask = cv2.bitwise_or(mask_yellow, mask_white)  # combinar ambas mascaras
     return combined_mask
 
-# Función para aplicar fondo negro
+# funcion para aplicar fondo negro a todo menos las lineas detectadas
+
 def aplicar_fondo_negro(frame, mask_lineas):
-    resultado = cv2.bitwise_and(frame, frame, mask=mask_lineas)
-    fondo_negro = np.zeros_like(frame)
-    frame_con_lineas = cv2.add(fondo_negro, resultado)
+    resultado = cv2.bitwise_and(frame, frame, mask=mask_lineas)  # aplicar la mascara al frame original
+    fondo_negro = np.zeros_like(frame)  # crear un frame negro del mismo tamaño
+    frame_con_lineas = cv2.add(fondo_negro, resultado)  # agregar las lineas al fondo negro
     return frame_con_lineas
 
-# Función para procesar el frame completo
+# funcion para procesar el frame completo
+# aplica suavizado, filtro gamma y deteccion de lineas
+
 def procesar_frame(frame):
-    # Aplicar suavizado Gaussiano 5x5
-    frame_suavizado = suavizar(frame)
-    
-    # Aplicar filtro gamma
-    frame_procesado = filtro_gamma(frame_suavizado)
-    
-    # Detectar líneas amarillas y blancas
-    mask_lineas = detectar_lineas(frame_procesado)
-    
-    # Aplicar fondo negro para todo excepto las líneas
-    frame_con_lineas = aplicar_fondo_negro(frame_procesado, mask_lineas)
-    
+    frame_suavizado = suavizar(frame)  # aplicar suavizado gaussiano
+    frame_procesado = filtro_gamma(frame_suavizado)  # aplicar filtro gamma
+    mask_lineas = detectar_lineas(frame_procesado)  # detectar lineas amarillas y blancas
+    frame_con_lineas = aplicar_fondo_negro(frame_procesado, mask_lineas)  # aplicar fondo negro
     return frame_con_lineas
 
-# Función para cargar el video y procesar los frames
-def cargar_video(ruta_video, ruta_salida):
-    cap = cv2.VideoCapture(ruta_video)
-    if not cap.isOpened():
-        print("Error: No se pudo abrir el video.")
-        return
+# funcion para cargar el video y procesar los frames
+# lee el video, procesa los frames y los guarda
 
-    # Obtener propiedades del video
+def cargar_video(ruta_video, ruta_salida):
+    cap = cv2.VideoCapture(ruta_video)  # abrir el video
+    if not cap.isOpened():
+        print("error: no se pudo abrir el video.")
+        return
+    
+    # obtener propiedades del video
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-    # Configurar VideoWriter
+    
+    # configurar videowriter para guardar el video procesado
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(ruta_salida, fourcc, fps, (width, height))
-
+    
     try:
         while True:
-            ret, frame = cap.read()
+            ret, frame = cap.read()  # leer un frame del video
             if not ret:
-                break
-
-            # Procesar el frame
+                break  # salir si no hay mas frames
+            
+            # procesar el frame
             frame_recortado = recorte(frame)
             frame_procesado = procesar_frame(frame_recortado)
             frame_unido = union(frame, frame_procesado)
-
-            # Guardar el frame procesado
+            
+            # guardar el frame procesado en el video de salida
             out.write(frame_unido)
-
-            # Mostrar el frame procesado
-            cv2.imshow('Frame Procesado', frame_unido)
-
-            # Salir con tecla 'q'
+            
+            # mostrar el frame procesado en una ventana
+            cv2.imshow('frame procesado', frame_unido)
+            
+            # salir con tecla 'q'
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
         cap.release()
         out.release()
         cv2.destroyAllWindows()
-        print("Procesamiento finalizado.")
+        print("procesamiento finalizado.")
 
-# Función principal
+# funcion principal
 if __name__ == "__main__":
-    ruta_video = 'lineas.mp4'  # Ruta del video
-    ruta_salida = 'lineas_procesado.mp4'  # Ruta para exportar video
-
-    # Cargar y procesar el video
+    ruta_video = 'lineas.mp4'  # ruta del video de entrada
+    ruta_salida = 'lineas_procesado.mp4'  # ruta para exportar video procesado
+    
+    # llamar a la funcion para procesar el video
     cargar_video(ruta_video, ruta_salida)
