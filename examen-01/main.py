@@ -114,7 +114,7 @@ def cargar_video(ruta_video, ruta_salida):
             
             # recortar la region de interes
             frame_recortado = recorte(frame)
-            # procesar el frame rec
+            # procesar el frame recortado
             frame_procesado = procesar_frame(frame_recortado)
             # unir el frame procesado
             frame_unido = union(frame, frame_procesado)
